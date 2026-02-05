@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>윤쌤주산암산 국가대표 플래쉬암산 연습</title>
+
+    <link rel="apple-touch-icon" href="https://ibb.co/PsmLcVtk">
+    <link rel="icon" href="https://ibb.co/PsmLcVtk">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #39FF14;
+            --bg-color: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --danger-color: #ff4d4d;
+            --blue-bar: #007bff;
+            --admin-color: #ffcc00;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--primary-color); 
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
+            min-height: 100vh; margin: 0; overflow-x: hidden;
+        }
+        
+        .screen { display: none; flex-direction: column; align-items: center; width: 100%; padding: 40px 0; }
+        .active { display: flex; }
+
+        #main-title { font-size: 24px; color: #888; margin-bottom: 15px; letter-spacing: 3px; font-weight: 300; margin-top: 10vh; }
+        #main-sub { font-size: 40px; color: #fff; margin-bottom: 30px; font-weight: 700; }
+
+        .login-box { background: var(--card-bg); padding: 40px; border-radius: 20px; border: 1px solid #333; text-align: center; }
+        .login-box input { 
+            display: block; width: 250px; padding: 15px; margin: 10px 0; 
+            background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; text-align: center;
+        }
+        
+        #admin-screen { width: 90%; }
+        .admin-panel { background: #222; padding: 20px; border-radius: 15px; margin: 0 auto 20px auto; width: 80%; max-width: 800px; border: 1px solid var(--admin-color); }
+        .admin-btn { background: transparent; color: var(--admin-color); border: 1px solid var(--admin-color); padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .admin-btn:hover { background: var(--admin-color); color: #000; }
+        .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+
+        #game-container { height: 100vh; justify-content: center; padding: 0; overflow: hidden; }
+        #guide-area { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #type-info { font-size: 45px; color: #ffffff; margin-bottom: 20px; font-weight: 600; }
+        #q-number-bar { background-color: var(--blue-bar); color: white; padding: 5px 45px; border-radius: 4px; font-size: 28px; font-weight: bold; min-width: 120px; text-align: center; }
+        #flash-display { font-size: 260px; font-weight: 400; height: 300px; display: flex; align-items: center; justify-content: center; text-shadow: 0 0 20px rgba(57, 255, 20, 0.2); }
+        #input-area { display: none; text-align: center; }
+        .input-label { font-size: 40px; color: #ffffff; margin-bottom: 20px; font-weight: bold; }
+        .timer-text { color: var(--danger-color); font-size: 20px; margin-top: 15px; letter-spacing: 1px; }
+        .input-wrapper { background: var(--card-bg); border: 2px solid #333; border-radius: 16px; padding: 15px 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        #answerInput { background: transparent; border: none; color: white; font-size: 85px; width: 350px; text-align: center; outline: none; }
+        
+        #result-view { width: 85%; max-width: 900px; border-radius: 24px; border: 1px solid #333; padding: 45px; background: var(--card-bg); text-align: center; margin-bottom: 50px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; color: #fff; }
+        th { color: #888; padding: 12px; border-bottom: 2px solid #333; }
+        td { padding: 12px; font-size: 18px; border-bottom: 1px solid #222; }
+        .rank-gold { color: gold; font-weight: bold; }
+        .wrong { color: var(--danger-color); text-decoration: line-through; opacity: 0.6; }
+        
+        .btn { cursor: pointer; transition: all 0.3s; padding: 15px 40px; font-size: 20px; background: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); border-radius: 100px; margin-top: 20px; }
+        .btn:hover { background: var(--primary-color); color: black; }
+        #stopBtn { position: fixed; bottom: 30px; right: 30px; padding: 10px 20px; font-size: 16px; border-radius: 8px; border-color: #444; color: #888; z-index: 99999; background: #0a0a0a; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div id="main-title">대한민국국가대표선발전 연습실</div>
+        <div id="main-sub">윤쌤주산암산 (❁´◡`❁)</div>
+        <div class="login-box">
+            <input type="text" id="loginId" placeholder="이름">
+            <input type="password" id="loginPw" placeholder="비밀번호">
+            <button onclick="handleLogin()" class="btn">입장하기</button>
+            <div id="login-msg" style="margin-top:15px; color:var(--danger-color);">연결 중...</div>
+        </div>
+    </div>
+
+    <div id="game-container" class="screen">
+        <div id="guide-area">
+            <div id="type-info"></div>
+            <div id="q-number-bar"></div>
+        </div>
+        <div id="flash-display"></div>
+        <div id="input-area">
+            <div class="input-label">답을 쓰세요</div>
+            <div class="input-wrapper">
+                <input type="number" id="answerInput" autocomplete="off" readonly>
+            </div>
+            <div id="timer-display" class="timer-text">제한시간: 5초</div>
+        </div>
+        <button id="stopBtn" onclick="terminateGame()">그만하기</button>
+    </div>
+
+    <div id="admin-screen" class="screen">
+        <h1 style="color:var(--admin-color)">관리자 모드 (Firebase)</h1>
+        <div class="admin-panel">
+            <h3>로그인 제어</h3>
+            <span id="login-status-text" class="status-badge"></span>
+            <button onclick="toggleLogin(true)" class="admin-btn">로그인 시작</button>
+            <button onclick="toggleLogin(false)" class="admin-btn">로그인 차단</button>
+        </div>
+        <div class="admin-panel">
+            <h3>회원 가입</h3>
+            <input type="text" id="regName" placeholder="이름" style="padding:8px; width:120px;">
+            <input type="password" id="regPw" placeholder="비번" style="padding:8px; width:120px;">
+            <button onclick="registerChild()" class="admin-btn">등록</button>
+            <div style="margin-top:15px; max-height:150px; overflow-y:auto;">
+                <table id="user-list-table">
+                    <tbody id="user-list-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="admin-panel">
+            <h3>전체 순위 (점수/날짜)</h3>
+            <div style="max-height:300px; overflow-y:auto;">
+                <table>
+                    <thead><tr><th>순위</th><th>이름</th><th>점수</th><th>연습 일시</th></tr></thead>
+                    <tbody id="admin-ranking-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="admin-panel" style="text-align: center;">
+            <button onclick="resetRankings()" class="admin-btn" style="color:red; border-color:red;">데이터 전체 리셋</button>
+            <button onclick="location.reload()" class="admin-btn">로그아웃</button>
+        </div>
+    </div>
+
+    <div id="result-view" class="screen">
+        <h1 id="user-display-name" style="color:var(--primary-color); font-size: 32px;"></h1>
+        <h1 id="total-score" style="color:white; font-size: 55px;"></h1>
+        <table id="result-table">
+            <thead><tr><th>문제</th><th>정답</th><th>입력</th><th>판정</th></tr></thead>
+            <tbody id="result-body"></tbody>
+        </table>
+        <div style="margin-top:60px; padding-top:40px; border-top:2px solid #333;">
+            <div style="font-size:32px; color:gold; margin-bottom:25px;">🏆 실시간 연습 순위</div>
+            <table>
+                <thead><tr><th>순위</th><th>이름</th><th>점수</th><th>연습 일시</th></tr></thead>
+                <tbody id="ranking-body"></tbody>
+            </table>
+        </div>
+        <button onclick="location.reload()" class="btn">다시 시작하기</button>
+    </div>
+
+<script>
+        // ==========================================
+        // Firebase 설정 (여기에 본인의 설정을 넣으세요)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkQ7jYnuVhdbsDD6ur8eZb8PCqFOxdZ70",
+            authDomain: "korea-mental-math-practice.firebaseapp.com",
+            databaseURL: "https://korea-mental-math-practice-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "korea-mental-math-practice",
+            storageBucket: "korea-mental-math-practice.firebasestorage.app",
+            messagingSenderId: "851128180440",
+            appId: "1:851128180440:web:7b54be6b1bb1e00c5741ad"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let audioCtx, results = [], isTerminated = false, currentUserId = null;
+        let globalTimerId = null;
+
+        // 날짜 포맷 함수 추가 (YYYY-MM-DD HH:mm)
+        function getFormattedDate() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const h = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d} ${h}:${min}`;
+        }
+
+        db.ref('settings/loginEnabled').on('value', (snap) => {
+            const status = snap.val() !== false;
+            document.getElementById('login-msg').innerText = status ? "서버 연결됨" : "로그인 차단 중";
+        });
+
+        function playTone(f, t, d, v) {
+            if(!audioCtx || isTerminated) return;
+            try {
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+                g.gain.setValueAtTime(v, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(); o.stop(audioCtx.currentTime + d);
+            } catch(e) {}
+        }
+
+        async function handleLogin() {
+            const id = document.getElementById('loginId').value.trim(), pw = document.getElementById('loginPw').value;
+            if(id === 'admin' && pw === '1234') return (showScreen('admin-screen'), updateAdminPanel());
+            
+            const loginEnabledSnap = await db.ref('settings/loginEnabled').get();
+            if(loginEnabledSnap.val() === false) return alert("현재 로그인 기능이 차단되었습니다.");
+
+            const userSnap = await db.ref('users/' + id).get();
+            const userData = userSnap.val();
+
+            if(userData && userData.pw === pw) {
+                currentUserId = id; isTerminated = false; results = [];
+                showScreen('game-container');
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                runGame();
+            } else alert("정보 오류!");
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => { globalTimerId = setTimeout(resolve, ms); });
+        }
+
+        async function runGame() {
+            const configs = {
+                1: {d:2, r:5, t:500}, 2: {d:2, r:5, t:500}, 3: {d:2, r:7, t:500}, 4: {d:2, r:7, t:500},
+                5: {d:3, r:5, t:700}, 6: {d:3, r:5, t:700}, 7: {d:3, r:7, t:500}, 8: {d:3, r:7, t:500},
+                9: {d:3, r:10, t:400}, 10: {d:3, r:10, t:400}, 11: {d:4, r:7, t:700}, 12: {d:4, r:7, t:700},
+                13: {d:4, r:10, t:700}, 14: {d:4, r:10, t:700}, 15: {d:5, r:7, t:1000}, 16: {d:5, r:7, t:1000}
+            };
+            for(let q=1; q<=16; q++) {
+                if(isTerminated) break;
+                await runQuest(q, configs[q]);
+            }
+            if(!isTerminated) showResult();
+        }
+
+        async function runQuest(qNum, conf) {
+            const disp = document.getElementById('flash-display'), inputArea = document.getElementById('input-area'), input = document.getElementById('answerInput');
+            if(isTerminated) return;
+            document.getElementById('guide-area').style.display = "flex";
+            inputArea.style.display = "none";
+            document.getElementById('type-info').innerText = `${conf.d}위 ${conf.r}행 ${(conf.t/1000).toFixed(1)}초`;
+            document.getElementById('q-number-bar').innerText = `${qNum}번`;
+            
+            playTone(880, 'sine', 0.1, 0.05);
+            await wait(1800); if(isTerminated) return;
+            for(let i=0; i<3; i++) { if(isTerminated) return; playTone(1046.50, 'sine', 0.4, 0.06); await wait(1000); }
+
+            if(isTerminated) return;
+            document.getElementById('guide-area').style.display = "none";
+            let sum = 0;
+            for(let i=0; i<conf.r; i++) {
+                if(isTerminated) return;
+                let n = Math.floor(Math.random() * (Math.pow(10, conf.d) - Math.pow(10, conf.d-1))) + Math.pow(10, conf.d-1);
+                sum += n; disp.innerText = n; playTone(1200, 'square', 0.04, 0.02);
+                await wait(conf.t); if(isTerminated) return;
+                disp.innerText = ""; await wait(50);
+            }
+
+            if(isTerminated) return;
+            inputArea.style.display = "block"; input.value = ""; input.readOnly = false; input.focus();
+            for(let s=5; s>0; s--) {
+                if(isTerminated) break;
+                document.getElementById('timer-display').innerText = `제한시간: ${s}초`;
+                await wait(1000);
+            }
+            if(!isTerminated) { results.push({q:qNum, ans:sum, user:parseInt(input.value)||0}); inputArea.style.display="none"; }
+        }
+
+        function terminateGame() {
+            isTerminated = true;
+            clearTimeout(globalTimerId);
+            if(audioCtx) audioCtx.close();
+            showResult();
+        }
+
+        async function showResult() {
+            document.getElementById('game-container').classList.remove('active');
+            document.getElementById('game-container').style.display = 'none';
+            showScreen('result-view');
+            window.scrollTo(0, 0);
+
+            let score = 0;
+            const body = document.getElementById('result-body');
+            body.innerHTML = "";
+            for(let i=1; i<=16; i++) {
+                const r = results.find(x => x.q === i);
+                const row = body.insertRow();
+                if(r) {
+                    const ok = r.ans === r.user; if(ok) score++;
+                    row.innerHTML = `<td>${i}</td><td>${r.ans}</td><td class="${ok?'':'wrong'}">${r.user}</td><td>${ok?'정답':'오답'}</td>`;
+                } else row.innerHTML = `<td>${i}</td><td>-</td><td>-</td><td>미풀이</td>`;
+            }
+
+            const rankingSnap = await db.ref('rankings').get();
+            let rankings = [];
+            rankingSnap.forEach(s => { rankings.push(s.val()); });
+            
+            const myPrevCount = rankings.filter(x => x.id === currentUserId).length;
+            const finalName = `${currentUserId} ${myPrevCount + 1}`;
+            
+            const newRecord = { 
+                id: currentUserId, 
+                name: finalName, 
+                score: score, 
+                playTime: getFormattedDate(), // 연습 날짜와 시간 저장 추가
+                date: Date.now() 
+            };
+            await db.ref('rankings').push(newRecord);
+
+            document.getElementById('user-display-name').innerText = `${finalName} 님의 결과`;
+            document.getElementById('total-score').innerText = `총점: ${score} / 16`;
+            
+            updateRankingUI();
+        }
+
+        function updateRankingUI() {
+            db.ref('rankings').orderByChild('score').on('value', (snap) => {
+                let list = [];
+                snap.forEach(s => { list.push(s.val()); });
+                list.reverse();
+                
+                const target = document.getElementById('ranking-body');
+                const adminTarget = document.getElementById('admin-ranking-body');
+                if(target) target.innerHTML = "";
+                if(adminTarget) adminTarget.innerHTML = "";
+
+                list.forEach((r, i) => {
+                    const row = `<tr><td class="${i===0?'rank-gold':''}">${i+1}위</td><td>${r.name}</td><td>${r.score}점</td><td>${r.playTime || '-'}</td></tr>`;
+                    if(target) target.innerHTML += row;
+                    if(adminTarget) adminTarget.innerHTML += row;
+                });
+            });
+        }
+
+        function updateAdminPanel() {
+            db.ref('settings/loginEnabled').on('value', (snap) => {
+                const status = snap.val() !== false;
+                const badge = document.getElementById('login-status-text');
+                badge.innerText = status ? "로그인 가능" : "차단됨";
+                badge.style.backgroundColor = status ? "green" : "red";
+            });
+
+            db.ref('users').on('value', (snap) => {
+                const uBody = document.getElementById('user-list-body');
+                uBody.innerHTML = "";
+                snap.forEach(s => {
+                    uBody.innerHTML += `<tr><td>${s.key}</td><td><button onclick="deleteUser('${s.key}')">삭제</button></td></tr>`;
+                });
+            });
+            updateRankingUI();
+        }
+
+        function registerChild() {
+            const n = document.getElementById('regName').value.trim(), p = document.getElementById('regPw').value;
+            if(!n || !p) return;
+            db.ref('users/' + n).set({ pw: p });
+            document.getElementById('regName').value = ""; document.getElementById('regPw').value = "";
+        }
+
+        function deleteUser(n) { if(confirm(n + " 학생을 삭제할까요?")) db.ref('users/' + n).remove(); }
+        function toggleLogin(v) { db.ref('settings/loginEnabled').set(v); }
+        function resetRankings() { if(confirm("전체 순위를 초기화할까요?")) db.ref('rankings').remove(); }
+
+        function showScreen(id) { 
+            document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+            const t = document.getElementById(id); t.classList.add('active'); t.style.display = 'flex';
+            document.body.style.overflowY = (id === 'game-container') ? 'hidden' : 'auto';
+        }
+    </script>
+</body>
+</html>
