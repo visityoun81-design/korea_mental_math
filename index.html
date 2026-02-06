@@ -58,9 +58,34 @@
         #answerInput { background: transparent; border: none; color: white; font-size: 85px; width: 350px; text-align: center; outline: none; }
         
         #result-view { width: 85%; max-width: 900px; border-radius: 24px; border: 1px solid #333; padding: 45px; background: var(--card-bg); text-align: center; margin-bottom: 50px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; color: #fff; }
-        th { color: #888; padding: 12px; border-bottom: 2px solid #333; }
-        td { padding: 12px; font-size: 18px; border-bottom: 1px solid #222; }
+        /* 결과 및 순위표 최적화 */
+#result-view { 
+    width: 100%; /* 전체 너비 사용 */
+    padding: 10px; 
+    margin: 20px 0; 
+}
+
+table { 
+    width: 100%; 
+    font-size: 0.7rem; /* 글자 크기를 작게 조절 (기존 0.9rem) */
+    border-collapse: collapse; 
+    margin-top: 15px; 
+    table-layout: auto; /* 내용에 맞게 조절 */
+}
+
+th, td { 
+    padding: 8px 2px; 
+    text-align: center; 
+    border-bottom: 1px solid #333; 
+    white-space: nowrap; /* 글자가 길어도 줄바꿈 되지 않게 설정 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 너무 길면 ...으로 표시 */
+}
+
+/* 순위표의 날짜 열 너비를 조금 더 확보 */
+td:last-child {
+    font-size: 0.75rem; /* 날짜는 조금 더 작게 */
+}
         .rank-gold { color: gold; font-weight: bold; }
         .wrong { color: var(--danger-color); text-decoration: line-through; opacity: 0.6; }
         
